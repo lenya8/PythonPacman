@@ -6,20 +6,26 @@ import copy
 from IPython.display import Image
 from matplotlib.animation import FuncAnimation
 
+import random
+
 # Função para mostrar o mapa com o caminho atual
-def mostra_mapa_animado(mapa, caminho, ax):
+def mostra_mapa_animado(mapa, caminho_fantasminha, pacman_pos, ax):
     ncolunas = mapa["terreno"].shape[1]
     nlinhas = mapa["terreno"].shape[0]
     letras = np.array([["" for _ in range(ncolunas)] for _ in range(nlinhas)])
 
-    # Marcando o caminho com "X"
-    for passo in caminho:
-        letras[passo] = "X"
+    # Marcando o caminho fantasminha com "F"
+    for passo in caminho_fantasminha:
+        letras[passo] = "F"
 
-    # Marcando a entrada e a saída
-    letras[mapa["entrada"]] = 'P'  # Pacman
-    for ponto in mapa["pontos_coleta"]:
-        letras[ponto] = 'o'
+    # Marcando a posição Pacman
+        letras[pacman_pos] = "P"
+
+    # Exibindo o mapa com seaborn
+    ax.clear()
+    sns.heatmap(mapa['terreno'], annot=letras, fmt="", cbar=False, cmap="Blues",
+                linewidths=0.1, linecolor='black', square=True, ax=ax)
+
 
     # Exibindo o mapa com seaborn
     ax.clear()
@@ -31,7 +37,10 @@ def cria_mapa():
     tam_x = 10
     tam_y = 10
     terreno = np.zeros((tam_y, tam_x))  # Cria o mapa vazio
-    entrada = (8, 1)  # Posição de entrada
+    entrada = (8, 1)  # Posição inicial do fantasminha
+
+    # Definindo a posição inicial do Pacman
+    pacman_pos = (0, 8)
 
     # Definindo múltiplos pontos de coleta
     pontos_coleta = [(0, 8), (2, 4), (6, 7)]  # Lista de pontos para o Pacman coletar
@@ -42,7 +51,7 @@ def cria_mapa():
     terreno[5, 1:9] = 1
     terreno[7, 1:9] = 1
 
-    return {"terreno": terreno, "entrada": entrada, "pontos_coleta": pontos_coleta}
+    return {"terreno": terreno, "entrada": entrada, "pacman_pos": pacman_pos}
 
 # Aplicando a operação de movimento (Norte, Sul, Leste, Oeste)
 def aplica_operacao(estado, op):
@@ -69,32 +78,19 @@ def get_operacoes_validas(estado):
 
     return ops_validas
 
-# Verificar se o estado atual chegou ao destino
-def verifica_resultado(estado):
-    ponto_atual = estado["caminho"][-1]
-    if ponto_atual in estado["mapa"]["pontos_coleta"]:
-        estado["mapa"]["pontos_coleta"].remove(ponto_atual)  # Remove o ponto coletado
-        return True
-    return False
 
 # Cálculo do custo (distância percorrida até agora)
 def calc_c(estado):
     return len(estado["caminho"])
 
-# Cálculo da heurística (distância até a saída)
-def calc_h(estado):
-    pontos_coleta = estado["mapa"]["pontos_coleta"]
-    if not pontos_coleta:  # Se não houver mais pontos, a heurística é 0
-        return 0
-
+# Cálculo da heurística (distância do fantasminha até o Pacman)
+def calc_h(estado, pacman_pos):
     p = estado["caminho"][-1]
+    # Calcular a distância de Manhattan até o Pacman
+    return abs(p[0] - pacman_pos[0]) + abs(p[1] - pacman_pos[1])
 
-    # Calcular a distância de Manhattan até o ponto de coleta mais próximo
-    distancias = [abs(p[0] - pc[0]) + abs(p[1] - pc[1]) for pc in pontos_coleta]
-    return min(distancias)  # Heurística é a menor distância até um ponto de coleta
-
-# Algoritmo A* para encontrar o caminho mais curto
-def busca_a_estrela(estado_ini, max_niveis):
+# Algoritmo A* para o fantasminha perseguir o Pacman
+def busca_a_estrela(estado_ini, pacman_pos, max_niveis):
     quant_estados = 0
     node_ini = {'estado': estado_ini, 'f': 0}
     folhas = [node_ini]
@@ -112,21 +108,41 @@ def busca_a_estrela(estado_ini, max_niveis):
         for op in operacoes:
             estado = aplica_operacao(melhor_folha['estado'], op)
             quant_estados += 1
-            f = calc_c(estado) + calc_h(estado)
+            f = calc_c(estado) + calc_h(estado, pacman_pos)
             node = {'estado': estado, 'f': f}
             folhas.append(node)
 
-            # Verificar se o resultado foi encontrado
-            if verifica_resultado(estado):
+             # Verificar se o fantasminha alcançou o Pacman
+            if estado["caminho"][-1] == pacman_pos:
                 return node, quant_estados
 
     return None, 0  # Se não encontrou resultado
+
+
+# Função para mover o Pacman aleatoriamente
+def move_pacman(mapa, pacman_pos):
+    ops_validas = []
+    des = {"N": (-1, 0), "S": (1, 0), "L": (0, 1), "O": (0, -1)}
+
+    for op, deslocamento in des.items():
+        nova_pos = (pacman_pos[0] + deslocamento[0], pacman_pos[1] + deslocamento[1])
+        if 0 <= nova_pos[0] < mapa["terreno"].shape[0] and 0 <= nova_pos[1] < mapa["terreno"].shape[1]:
+            if mapa["terreno"][nova_pos[0], nova_pos[1]] < 1:  # Não é obstáculo
+                ops_validas.append(nova_pos)
+
+    if ops_validas:
+        return random.choice(ops_validas)
+    return pacman_pos  # Se não houver movimento válido, o Pacman fica parado
+
+
 
 # Função principal para executar a busca A*
 def main():
     # Criar o mapa e configurar o estado inicial
     mapa = cria_mapa()
     estado_ini = {"mapa": mapa, "caminho": [mapa["entrada"]]}
+    pacman_pos = mapa["pacman_pos"]
+
 
     # Configurando a figura e o eixo
     fig, ax = plt.subplots(figsize=(5, 5))
@@ -138,22 +154,24 @@ def main():
     max_niveis = 100000
     quant_estados_total = 0
 
-    while mapa["pontos_coleta"]:
-        res, quant_estados_estrela = busca_a_estrela(estado_ini, max_niveis)
+    for _ in range(30):  # Loop de tempo para a perseguição
+        pacman_pos = move_pacman(mapa, pacman_pos)  # Mover o Pacman aleatoriamente
+        res, quant_estados_estrela = busca_a_estrela(estado_ini, pacman_pos, max_niveis)
         quant_estados_total += quant_estados_estrela
 
         if res:
             estado_ini = res["estado"]
-            frames.append(copy.deepcopy(estado_ini["caminho"]))  # Salva o estado para a animação
+            frames.append((copy.deepcopy(estado_ini["caminho"]), pacman_pos))  # Salva o estado para a animação
         else:
-            print("Caminho não encontrado")
+            print("Fantasminha não encontrou o Pacman")
             break
 
     print(f"Quantidade total de estados explorados: {quant_estados_total}")
 
     # Função para atualização da animação
     def update(frame):
-        mostra_mapa_animado(mapa, frame, ax)
+        caminho_fantasminha, pacman_pos = frame
+        mostra_mapa_animado(mapa, caminho_fantasminha, pacman_pos, ax)
 
     # Criar a animação
     ani = FuncAnimation(fig, update, frames=frames, repeat=False, interval=300)
