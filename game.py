@@ -1,6 +1,6 @@
 import pygame
 import sys
-
+import numpy as np
 # Inicializa o pygame
 pygame.init()
 
@@ -34,6 +34,29 @@ ghost_image = pygame.image.load("004__108uf17.webp")
 ghost_size = (50, 50)
 ghost_image = pygame.transform.scale(ghost_image, ghost_size)
 
+#---------------------------------------------------
+tam_x= 8
+tam_y= 8
+terreno = np.zeros((tam_y, tam_x))
+#obstáculos:
+terreno[2,3]=1
+terreno[3,3]=1
+terreno[5,3]=1
+terreno[6,3]=1
+terreno[7,3]=1
+terreno[2,5]=1
+terreno[3,5]=1
+terreno[4,5]=1
+terreno[5,5]=1
+terreno[2,4]=1
+
+entrada=(7,4)
+saida=(0,0)
+mapa={"terreno":terreno,"entrada":entrada,"saida":saida}
+
+caminho=[]
+#----------------------------------------------------
+
 # Loop principal
 while True:
     for event in pygame.event.get():
@@ -45,15 +68,34 @@ while True:
     # Aqui você poderia calcular o caminho do fantasma usando o algoritmo A*
     # Considerando a posição do Pacman como a saída e do Fantasma como a entrada
     # Para esse exemplo, vamos apenas simular o movimento do fantasma em direção ao Pacman.
-    if ghost_x < pacman_x:
-        ghost_x += 1  # O fantasma se move para a direita
-    elif ghost_x > pacman_x:
-        ghost_x -= 1  # O fantasma se move para a esquerda
 
-    if ghost_y < pacman_y:
-        ghost_y += 1  # O fantasma se move para baixo
-    elif ghost_y > pacman_y:
-        ghost_y -= 1  # O fantasma se move para cima
+
+
+
+
+    #desenha o mapa
+        # Preenche a tela com branco
+    screen.fill(WHITE)
+
+    ncolunas=mapa["terreno"].shape[1]
+    nlinhas=mapa["terreno"].shape[0]
+    letras = np.array([["" for _ in range(ncolunas)] for _ in range(nlinhas)])
+    for passo in caminho:
+        letras[passo]="X"
+    letras[mapa["entrada"]]='E'
+    letras[mapa["saida"]]='S'
+
+    cellsize=100
+    for i in range(nlinhas):
+        for j in range(ncolunas):
+            if mapa["terreno"][i,j]==1:
+                pygame.draw.rect(screen, (50,50,50), (i * cellsize, j * cellsize, cellsize, cellsize)) #parede
+            if mapa["terreno"][i,j]==0:
+                pygame.draw.rect(screen, (200,255,200), (i * cellsize, j * cellsize, cellsize, cellsize)) #fundo
+
+
+    
+
     #------------------------------------------------------------
 
     # Pega as teclas pressionadas
@@ -69,8 +111,7 @@ while True:
     if keys[pygame.K_DOWN]:
         pacman_y += speed
 
-    # Preenche a tela com branco
-    screen.fill(WHITE)
+
 
     # Desenha o Pacman
     screen.blit(pacman_image, (pacman_x, pacman_y))
