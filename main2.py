@@ -6,44 +6,40 @@ import copy
 from IPython.display import Image
 from matplotlib.animation import FuncAnimation
 
-import random
-
 # Função para mostrar o mapa com o caminho atual
 def mostra_mapa_animado(mapa, caminho_fantasminha, pacman_pos, ax):
     ncolunas = mapa["terreno"].shape[1]
     nlinhas = mapa["terreno"].shape[0]
     letras = np.array([["" for _ in range(ncolunas)] for _ in range(nlinhas)])
 
-    # Marcando o caminho fantasminha com "F"
-    #for passo in caminho_fantasminha:
-     #   letras[passo] = "F"
 
-
-    if caminho_fantasminha and len(caminho_fantasminha) > 0:
-        letras[caminho_fantasminha[-1]] = "F"  # Apenas a posição atual do fantasma
-
-    # Marcando a posição Pacman
+ # Marcando a posição Pacman
     letras[pacman_pos] = "P"
 
-    # Exibindo o mapa com seaborn
+# Marcando o caminho fantasminha com "F"
+    for pos in caminho_fantasminha:  # Marcando todas as posições do caminho
+        letras[pos] = "F"
+
+
+
+   # Exibindo o mapa com seaborn
     ax.clear()
     sns.heatmap(mapa['terreno'], annot=letras, fmt="", cbar=False, cmap="Blues",
                 linewidths=0.1, linecolor='black', square=True, ax=ax)
-
 
 # Configurando o mapa e os obstáculos
 def cria_mapa():
     tam_x = 10
     tam_y = 10
     terreno = np.zeros((tam_y, tam_x))  # Cria o mapa vazio
+
+
     entrada = (8, 1)  # Posição inicial do fantasminha
 
     # Definindo a posição inicial do Pacman
     pacman_pos = (0, 8)
 
-    # Definindo múltiplos pontos de coleta
-    pontos_coleta = [(0, 8), (2, 4), (6, 7)]  # Lista de pontos para o Pacman coletar
-
+    
     # Adicionando obstáculos
     terreno[1, 1:9] = 1 # Paredes na linha 1, colunas 1 a 8
     terreno[3, 1:9] = 1
@@ -51,6 +47,10 @@ def cria_mapa():
     terreno[7, 1:9] = 1
 
     return {"terreno": terreno, "entrada": entrada, "pacman_pos": pacman_pos}
+
+
+# ALGORITMO DE MOVIMENTO -------------------------------------
+
 
 # Aplicando a operação de movimento (Norte, Sul, Leste, Oeste)
 def aplica_operacao(estado, op):
@@ -129,9 +129,11 @@ def move_pacman(mapa, pacman_pos):
             if mapa["terreno"][nova_pos[0], nova_pos[1]] < 1:  # Não é obstáculo
                 ops_validas.append(nova_pos)
 
-    if ops_validas:
-        return random.choice(ops_validas)
     return pacman_pos  # Se não houver movimento válido, o Pacman fica parado
+
+
+
+# /ALGORITMO DE MOVIMENTO -------------------------------------
 
 
 
@@ -171,8 +173,7 @@ def main():
     def update(frame):
         caminho_fantasminha, pacman_pos = frame
         mostra_mapa_animado(mapa, caminho_fantasminha, pacman_pos, ax)
-        print("Caminho atual do fantasma:", estado_ini["caminho"])
-
+        
 
     # Criar a animação
     ani = FuncAnimation(fig, update, frames=frames, repeat=False, interval=300)
@@ -187,6 +188,5 @@ def main():
 if __name__ == "__main__":
     main()
 
-#exibe o gif gerado
-Image("/content/pacman.gif")
-
+# Exibe o gif gerado
+Image("pacman.gif")
