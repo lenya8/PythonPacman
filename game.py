@@ -18,7 +18,7 @@ pacman_x = screen_width // 3
 pacman_y = screen_height // 3
 
 # Carregar a imagem do Pacman (substitua "pacman.png" pelo caminho da sua imagem)
-pacman_image = pygame.image.load("001__31cj05.webp")
+pacman_image = pygame.image.load("pacman_sprite.png")
 pacman_size = (50, 50)  # Tamanho da imagem
 pacman_image = pygame.transform.scale(pacman_image, pacman_size)
 
