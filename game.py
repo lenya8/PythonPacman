@@ -1,6 +1,7 @@
 import pygame
 import sys
 import numpy as np
+import copy
 # Inicializa o pygame
 pygame.init()
 
@@ -55,6 +56,7 @@ saida=(0,0)
 mapa={"terreno":terreno,"entrada":entrada,"saida":saida}
 
 caminho=[]
+
 #----------------------------------------------------
 
 # Loop principal
@@ -72,11 +74,86 @@ while True:
 
 
 
+    # ALGORITMO DE MOVIMENTO -------------------------------------
 
-    #desenha o mapa
-        # Preenche a tela com branco
+
+    # Aplicando a operação de movimento (Norte, Sul, Leste, Oeste)
+    def aplica_operacao(estado, op):
+        des = {"N": (-1, 0), "S": (1, 0), "L": (0, 1), "O": (0, -1)}
+        pos = estado["caminho"][-1]
+        passo = (pos[0] + des[op][0], pos[1] + des[op][1])
+        novo_caminho = copy.deepcopy(estado["caminho"]) + [passo]
+        novo_estado = {"mapa": estado["mapa"], "caminho": novo_caminho}
+
+        return novo_estado
+
+    # Verificar quais movimentos são válidos (não saem do mapa e não colidem com obstáculos)
+    def get_operacoes_validas(estado):
+        ops_validas = []
+        des = {"N": (-1, 0), "S": (1, 0), "L": (0, 1), "O": (0, -1)}
+        pos = estado["caminho"][-1]
+
+        for op, deslocamento in des.items():
+            nova_pos = (pos[0] + deslocamento[0], pos[1] + deslocamento[1])
+            # Verificar se nova posição é válida (não fora do mapa e sem obstáculos)
+            if 0 <= nova_pos[0] < estado["mapa"]["terreno"].shape[0] and 0 <= nova_pos[1] < estado["mapa"]["terreno"].shape[1]:
+                if estado["mapa"]["terreno"][nova_pos[0], nova_pos[1]] < 1:  # Não é obstáculo
+                    ops_validas.append(op)
+
+        return ops_validas
+
+
+    # Cálculo do custo (distância percorrida até agora)
+    def calc_c(estado):
+        return len(estado["caminho"])
+
+    # Cálculo da heurística (distância do fantasminha até o Pacman)
+    def calc_h(estado, pacman_pos):
+        p = estado["caminho"][-1]
+        # Calcular a distância de Manhattan até o Pacman
+        return abs(p[0] - pacman_pos[0]) + abs(p[1] - pacman_pos[1])
+
+    # Algoritmo A* para o fantasminha perseguir o Pacman
+    def busca_a_estrela(estado_ini, pacman_pos, max_niveis):
+        quant_estados = 0
+        node_ini = {'estado': estado_ini, 'f': 0}
+        folhas = [node_ini]
+        nivel = 0
+
+        while nivel < max_niveis:
+            nivel += 1
+
+            # Escolher a folha com o menor valor de f
+            melhor_folha = min(folhas, key=lambda folha: folha['f'])
+            folhas.remove(melhor_folha)
+
+            # Gerar novos estados a partir das operações válidas
+            operacoes = get_operacoes_validas(melhor_folha['estado'])
+            for op in operacoes:
+                estado = aplica_operacao(melhor_folha['estado'], op)
+                quant_estados += 1
+                f = calc_c(estado) + calc_h(estado, pacman_pos)
+                node = {'estado': estado, 'f': f}
+                folhas.append(node)
+
+                # Verificar se o fantasminha alcançou o Pacman
+                if estado["caminho"][-1] == pacman_pos:
+                    return node, quant_estados
+
+        return None, 0  # Se não encontrou resultado
+
+
+
+    # /ALGORITMO DE MOVIMENTO -------------------------------------
+
+
+
+
+
+    # Preenche a tela com branco
     screen.fill(WHITE)
 
+    #desenha mapa
     ncolunas=mapa["terreno"].shape[1]
     nlinhas=mapa["terreno"].shape[0]
     letras = np.array([["" for _ in range(ncolunas)] for _ in range(nlinhas)])
@@ -93,8 +170,6 @@ while True:
             if mapa["terreno"][i,j]==0:
                 pygame.draw.rect(screen, (200,255,200), (i * cellsize, j * cellsize, cellsize, cellsize)) #fundo
 
-
-    
 
     #------------------------------------------------------------
 
@@ -124,3 +199,5 @@ while True:
 
     # Define a taxa de quadros
     pygame.time.Clock().tick(60)
+
+   
