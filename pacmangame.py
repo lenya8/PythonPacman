@@ -12,8 +12,8 @@ tela = pygame.display.set_mode((tamanho_tela, altura_tela))
 pygame.display.set_caption("Movimento com Imagem e A*")
 
 # Posição inicial do Pacman
-pacman_x = tamanho_tela // 3
-pacman_y = altura_tela // 3
+pacman_x = 0
+pacman_y = 0
 
 pacman_image = pygame.image.load("imagens/pacman_sprite.png")
 pacman_tamanho = (50, 50)
@@ -35,46 +35,48 @@ ghost_image = pygame.transform.scale(ghost_image, ghost_size)
 terreno_eixo_x = 8
 terreno_eixo_y = 8
 
+# Definindo obstáculos para criar um labirinto simples
 obstaculo = np.zeros((terreno_eixo_y, terreno_eixo_x))
-
-# Obstáculos no obstaculo
-obstaculo[2, 3] = 1
-obstaculo[3, 3] = 1
-obstaculo[5, 3] = 1
-obstaculo[6, 3] = 1
-obstaculo[7, 3] = 1
-obstaculo[2, 5] = 1
-obstaculo[3, 5] = 1
-obstaculo[4, 5] = 1
-obstaculo[5, 5] = 1
+obstaculo[1, 1] = obstaculo[1, 2] = obstaculo[1, 3] = obstaculo[1, 4] = 1
+obstaculo[2, 1] = 1
+obstaculo[3, 1] = 1
+obstaculo[4, 1] = 1
 obstaculo[2, 4] = 1
+obstaculo[3, 4] = 1
+obstaculo[5, 2] = obstaculo[5, 3] = obstaculo[5, 4] = 1
+obstaculo[6, 1] = obstaculo[6, 2] = obstaculo[6, 3] = obstaculo[6, 5] = 1
+obstaculo[4, 6] = obstaculo[4, 7] = 1
 
-posicao_inicial = (7, 4)
-saida = (0, 0)
+posicao_inicial = (7, 7)
+saida = (5, 7)
 mapa = {"terreno": obstaculo, "entrada": posicao_inicial, "saida": saida}
 caminho = []
 
 tamanho_celula = 100
 
-# Converte a posicao de vários pixels para apenas uma posição
+# Converte a posição de pixels para posição no grid
 def pixel_para_grid(x, y, tamanho_celula):
     return (y // tamanho_celula, x // tamanho_celula)
 
-# convertendo o tamanho dos pixels da grid para encaixar com o tamanho das células
+# Converte a posição do grid para pixels
 def grid_para_pixel(i, j, tamanho_celula):
     return (j * tamanho_celula, i * tamanho_celula)
 
-# Aplicando a operação de movimento (Norte, Sul, Leste, Oeste) 
+# Verifica se a próxima posição do Pacman é válida
+def movimento_valido(x, y, mapa):
+    grid_pos = pixel_para_grid(x, y, tamanho_celula)
+    return mapa["terreno"][grid_pos[0], grid_pos[1]] == 0  # Retorna True se não for um obstáculo
+
+# Aplica a operação de movimento
 def aplica_operacao(estado, op):
     des = {"N": (-1, 0), "S": (1, 0), "L": (0, 1), "O": (0, -1)} #(x, y)
     pos = estado["caminho"][-1]
     passo = (pos[0] + des[op][0], pos[1] + des[op][1])
     novo_caminho = copy.deepcopy(estado["caminho"]) + [passo]
     novo_estado = {"mapa": estado["mapa"], "caminho": novo_caminho}
-
     return novo_estado
 
-# Verificar quais movimentos são válidos
+# Verifica quais movimentos são válidos
 def get_operacoes_validas(estado):
     ops_validas = []
     des = {"N": (-1, 0), "S": (1, 0), "L": (0, 1), "O": (0, -1)}
@@ -96,7 +98,7 @@ def calc_heuristica(estado, pacman_pos):
     p = estado["caminho"][-1]
     return abs(p[0] - pacman_pos[0]) + abs(p[1] - pacman_pos[1])
 
-# estado_inicial é a posição do fantasma
+# Busca A*
 def busca_a_estrela(estado_ini, pacman_pos, max_niveis):
     quant_estados = 0
     node_ini = {'estado': estado_ini, 'f': 0}
@@ -127,7 +129,7 @@ def busca_a_estrela(estado_ini, pacman_pos, max_niveis):
 
 # Variável para controlar o tempo de movimento do fantasma
 tempo_ultimo_movimento = pygame.time.get_ticks()
-tempo_movimento = 800  # Tempo em milissegundos (1 segundo)
+tempo_movimento = 800  # Tempo em milissegundos
 
 # Loop principal do jogo
 while True:
@@ -136,9 +138,7 @@ while True:
             pygame.quit()
             sys.exit()
 
-    
     pacman_pos_grid = pixel_para_grid(pacman_x, pacman_y, tamanho_celula)
-    
     fantasma_pacman_grid = pixel_para_grid(fantasma_x, fantasma_y, tamanho_celula)
 
     # Estado inicial do fantasma
@@ -180,14 +180,14 @@ while True:
     # Pega as teclas pressionadas
     keys = pygame.key.get_pressed()
 
-    # Movimenta o Pacman com base nas teclas
-    if keys[pygame.K_LEFT]:
+    # Movimenta o Pacman com base nas teclas, verificando se o movimento é válido
+    if keys[pygame.K_LEFT] and movimento_valido(pacman_x - velocidade, pacman_y, mapa):
         pacman_x -= velocidade
-    if keys[pygame.K_RIGHT]:
+    if keys[pygame.K_RIGHT] and movimento_valido(pacman_x + velocidade, pacman_y, mapa):
         pacman_x += velocidade
-    if keys[pygame.K_UP]:
+    if keys[pygame.K_UP] and movimento_valido(pacman_x, pacman_y - velocidade, mapa):
         pacman_y -= velocidade
-    if keys[pygame.K_DOWN]:
+    if keys[pygame.K_DOWN] and movimento_valido(pacman_x, pacman_y + velocidade, mapa):
         pacman_y += velocidade
 
     # Desenha o Pacman
