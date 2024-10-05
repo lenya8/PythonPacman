@@ -38,12 +38,16 @@ terreno_eixo_y = 8
 
 # Definindo obstáculos para criar um labirinto simples
 obstaculo = np.zeros((terreno_eixo_y, terreno_eixo_x))
-obstaculo[1, 1] = 1
+obstaculo[1, 1] = obstaculo[2, 1] = obstaculo[3, 1] = obstaculo[3, 2] = 1
+obstaculo[1, 4] = obstaculo[1, 5] = 1
+obstaculo[4, 3] = obstaculo[4, 4] = obstaculo[4, 5] = obstaculo[3, 3] = obstaculo[3, 5] = obstaculo[4, 6] = 1
+obstaculo[5, 0] = obstaculo[5, 1] = obstaculo[0, 7] = obstaculo[2, 7] = 1
 
 
 
 posicao_inicial = (7, 7)
-saida = (5, 7)
+saida = (4, 7)
+jogo_encerrado = False  # Variável para controlar o estado do jogo
 mapa = {"terreno": obstaculo, "entrada": posicao_inicial, "saida": saida}
 
 tamanho_celula = 100
@@ -133,6 +137,17 @@ tempo_movimento = 800  # Tempo em milissegundos
 proximo_destino_x = fantasma_x
 proximo_destino_y = fantasma_y
 
+mensagem = ""
+
+def tela_final(texto):
+    tela.fill((255, 255, 255))  # Preenche a tela com branco
+    fonte = pygame.font.SysFont("Arial", 60)
+    superficie_texto = fonte.render(texto, True, (0, 0, 0))  # Texto preto
+    retangulo = superficie_texto.get_rect(center=(tamanho_tela // 2, altura_tela // 2))
+    tela.blit(superficie_texto, retangulo)
+    pygame.display.flip()  # Atualiza a tela
+    pygame.time.wait(2000)  # Espera 2 segundos
+
 # Loop principal do jogo
 while True:
     for event in pygame.event.get():
@@ -165,10 +180,26 @@ while True:
 
     # Converte a posição do Pacman e do fantasma para o grid
     pacman_pos_grid = pixel_para_grid(pacman_x, pacman_y, tamanho_celula)
-    fantasma_pacman_grid = pixel_para_grid(fantasma_x, fantasma_y, tamanho_celula)
+    fantasma_pos_grid = pixel_para_grid(fantasma_x, fantasma_y, tamanho_celula)
+
+    # Verifica se o Pac-Man chegou à saída
+    if pacman_pos_grid == saida:
+        tela_final("Você alcançou a saída!")  # Chama a função para exibir a tela final
+        pygame.quit()  # Encerra o Pygame
+        sys.exit()  # Encerra o jogo
+
+  
+
+
+        # Verifica se o Pac-Man chegou à saída
+    if pacman_pos_grid == fantasma_pos_grid:
+        print("Você perdeu!")  # Mensagem no console
+        tela_final("Perdeu")  # Chama a função para exibir a tela final
+        pygame.quit()  # Encerra o Pygame
+        sys.exit()  # Encerra o jogo
 
     # Estado inicial do fantasma
-    estado_ini = {"mapa": mapa, "caminho": [fantasma_pacman_grid]}
+    estado_ini = {"mapa": mapa, "caminho": [fantasma_pos_grid]}
 
     # Calcula o caminho usando o algoritmo A*
     max_niveis = 1000  # Limite de profundidade para o A*
