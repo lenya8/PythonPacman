@@ -38,15 +38,9 @@ terreno_eixo_y = 8
 
 # Definindo obstáculos para criar um labirinto simples
 obstaculo = np.zeros((terreno_eixo_y, terreno_eixo_x))
-obstaculo[1, 1] = obstaculo[1, 2] = obstaculo[1, 3] = obstaculo[1, 4] = 1
-obstaculo[2, 1] = 1
-obstaculo[3, 1] = 1
-obstaculo[4, 1] = 1
-obstaculo[2, 4] = 1
-obstaculo[3, 4] = 1
-obstaculo[5, 2] = obstaculo[5, 3] = obstaculo[5, 4] = 1
-obstaculo[6, 1] = obstaculo[6, 2] = obstaculo[6, 3] = obstaculo[6, 5] = 1
-obstaculo[4, 6] = obstaculo[4, 7] = 1
+obstaculo[1, 1] = 1
+
+
 
 posicao_inicial = (7, 7)
 saida = (5, 7)
@@ -68,6 +62,11 @@ def verificar_colisao(x, y):
     pacman_top_direita = pixel_para_grid(x + pacman_tamanho[0] - 1, y, tamanho_celula)
     pacman_base_esquerda = pixel_para_grid(x, y + pacman_tamanho[1] - 1, tamanho_celula)
     pacman_base_direita = pixel_para_grid(x + pacman_tamanho[0] - 1, y + pacman_tamanho[1] - 1, tamanho_celula)
+
+    # Verifica se os índices estão dentro dos limites do mapa
+    for pos in [pacman_top_esquerda, pacman_top_direita, pacman_base_esquerda, pacman_base_direita]:
+        if pos[0] < 0 or pos[0] >= mapa["terreno"].shape[0] or pos[1] < 0 or pos[1] >= mapa["terreno"].shape[1]:
+            return True  # Considera que houve uma colisão
 
     # Se qualquer um dos cantos colidir com um obstáculo, retorna True
     if (mapa["terreno"][pacman_top_esquerda[0], pacman_top_esquerda[1]] == 1 or
@@ -148,17 +147,18 @@ while True:
     novo_pacman_x, novo_pacman_y = pacman_x, pacman_y
 
     if keys[pygame.K_LEFT]:
-        if not verificar_colisao(pacman_x - velocidade, pacman_y):
+        if not verificar_colisao(pacman_x - velocidade, pacman_y) and pacman_x - velocidade >= 0:
             novo_pacman_x -= velocidade
     if keys[pygame.K_RIGHT]:
-        if not verificar_colisao(pacman_x + velocidade, pacman_y):
+        if not verificar_colisao(pacman_x + velocidade, pacman_y) and pacman_x + pacman_tamanho[0] + velocidade <= tamanho_tela:
             novo_pacman_x += velocidade
     if keys[pygame.K_UP]:
-        if not verificar_colisao(pacman_x, pacman_y - velocidade):
+        if not verificar_colisao(pacman_x, pacman_y - velocidade) and pacman_y - velocidade >= 0:
             novo_pacman_y -= velocidade
     if keys[pygame.K_DOWN]:
-        if not verificar_colisao(pacman_x, pacman_y + velocidade):
+        if not verificar_colisao(pacman_x, pacman_y + velocidade) and pacman_y + pacman_tamanho[1] + velocidade <= altura_tela:
             novo_pacman_y += velocidade
+
 
     # Atualiza a posição do Pacman
     pacman_x, pacman_y = novo_pacman_x, novo_pacman_y
