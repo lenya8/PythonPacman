@@ -119,3 +119,4 @@ mostra_mapa(estado["mapa"],estado["caminho"])
 print("Quant estados="+str(quant_estados_estrela))
 
 
+#------------------------------------------------------
