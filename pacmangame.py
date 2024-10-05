@@ -12,8 +12,8 @@ tela = pygame.display.set_mode((tamanho_tela, altura_tela))
 pygame.display.set_caption("Movimento com Imagem e A*")
 
 # Posição inicial do Pacman
-pacman_x = tamanho_tela // 5
-pacman_y = altura_tela // 3
+pacman_x = 0
+pacman_y = 0
 
 pacman_image = pygame.image.load("imagens/pacman_sprite.png")
 pacman_tamanho = (50, 50)
@@ -36,22 +36,20 @@ ghost_image = pygame.transform.scale(ghost_image, ghost_size)
 terreno_eixo_x = 8
 terreno_eixo_y = 8
 
+# Definindo obstáculos para criar um labirinto simples
 obstaculo = np.zeros((terreno_eixo_y, terreno_eixo_x))
-
-# Obstáculos no mapa
-obstaculo[2, 3] = 1
-obstaculo[3, 3] = 1
-obstaculo[5, 3] = 1
-obstaculo[6, 3] = 1
-obstaculo[7, 3] = 1
-obstaculo[2, 5] = 1
-obstaculo[3, 5] = 1
-obstaculo[4, 5] = 1
-obstaculo[5, 5] = 1
+obstaculo[1, 1] = obstaculo[1, 2] = obstaculo[1, 3] = obstaculo[1, 4] = 1
+obstaculo[2, 1] = 1
+obstaculo[3, 1] = 1
+obstaculo[4, 1] = 1
 obstaculo[2, 4] = 1
+obstaculo[3, 4] = 1
+obstaculo[5, 2] = obstaculo[5, 3] = obstaculo[5, 4] = 1
+obstaculo[6, 1] = obstaculo[6, 2] = obstaculo[6, 3] = obstaculo[6, 5] = 1
+obstaculo[4, 6] = obstaculo[4, 7] = 1
 
-posicao_inicial = (7, 4)
-saida = (0, 0)
+posicao_inicial = (7, 7)
+saida = (5, 7)
 mapa = {"terreno": obstaculo, "entrada": posicao_inicial, "saida": saida}
 
 tamanho_celula = 100
@@ -88,7 +86,7 @@ def aplica_operacao(estado, op):
     novo_estado = {"mapa": estado["mapa"], "caminho": novo_caminho}
     return novo_estado
 
-# Verificar quais movimentos são válidos
+# Verifica quais movimentos são válidos
 def get_operacoes_validas(estado):
     ops_validas = []
     des = {"N": (-1, 0), "S": (1, 0), "L": (0, 1), "O": (0, -1)}
@@ -130,7 +128,7 @@ def busca_a_estrela(estado_ini, pacman_pos, max_niveis):
 
 # Variável para controlar o tempo de movimento do fantasma
 tempo_ultimo_movimento = pygame.time.get_ticks()
-tempo_movimento = 800  # Tempo em milissegundos (1 segundo)
+tempo_movimento = 800  # Tempo em milissegundos
 
 # Próximo destino do fantasma
 proximo_destino_x = fantasma_x
