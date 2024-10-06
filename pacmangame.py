@@ -5,19 +5,17 @@ import copy
 
 pygame.init()
 
-# Dimensões da tela
 tamanho_tela = 800
 altura_tela = 600
 tela = pygame.display.set_mode((tamanho_tela, altura_tela))
-pygame.display.set_caption("Movimento com Imagem e A*")
+#pygame.display.set_caption("Movimento com Imagem e A*")
 
-# Posição inicial do Pacman
 pacman_x = 0
 pacman_y = 0
 
-pacman_image = pygame.image.load("imagens/pacman_sprite.png")
+imagem_pacman = pygame.image.load("imagens/pacman_sprite.png")
 pacman_tamanho = (50, 50)
-pacman_image = pygame.transform.scale(pacman_image, pacman_tamanho)
+imagem_pacman = pygame.transform.scale(imagem_pacman, pacman_tamanho)
 
 # Velocidade de movimento do Pacman
 velocidade = 5
@@ -28,9 +26,9 @@ fantasma_y = altura_tela // 2
 fantasma_velocidade = 2  # Velocidade menor para o fantasma
 
 # Carregar a imagem do Fantasma
-ghost_image = pygame.image.load("imagens/fantasma.webp")
-ghost_size = (50, 50)
-ghost_image = pygame.transform.scale(ghost_image, ghost_size)
+imagem_fantasma = pygame.image.load("imagens/fantasma.webp")
+fantasma_tamanho = (50, 50)
+imagem_fantasma = pygame.transform.scale(imagem_fantasma, fantasma_tamanho)
 
 # Dimensões do grid
 terreno_eixo_x = 8
@@ -43,11 +41,11 @@ obstaculo[1, 4] = obstaculo[1, 5] = 1
 obstaculo[4, 3] = obstaculo[4, 4] = obstaculo[4, 5] = obstaculo[3, 3] = obstaculo[3, 5] = obstaculo[4, 6] = 1
 obstaculo[5, 0] = obstaculo[5, 1] = obstaculo[0, 7] = obstaculo[2, 7] = 1
 
-
-
 posicao_inicial = (7, 7)
 saida = (4, 7)
-jogo_encerrado = False  # Variável para controlar o estado do jogo
+
+jogo_encerrado = False  
+
 mapa = {"terreno": obstaculo, "entrada": posicao_inicial, "saida": saida}
 
 tamanho_celula = 100
@@ -242,10 +240,10 @@ while True:
                 pygame.draw.rect(tela, (200, 255, 200), (j * tamanho_celula, i * tamanho_celula, tamanho_celula, tamanho_celula))  # fundo
 
     # Desenha o Pacman
-    tela.blit(pacman_image, (pacman_x, pacman_y))
+    tela.blit(imagem_pacman, (pacman_x, pacman_y))
 
     # Desenha o Fantasma
-    tela.blit(ghost_image, (fantasma_x, fantasma_y))
+    tela.blit(imagem_fantasma, (fantasma_x, fantasma_y))
 
     # Atualiza a tela
     pygame.display.flip()
