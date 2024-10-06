@@ -47,12 +47,11 @@ obstaculo[1, 4] = obstaculo[1, 5] = 1
 obstaculo[4, 3] = obstaculo[4, 4] = obstaculo[4, 5] = obstaculo[3, 3] = obstaculo[3, 5] = obstaculo[4, 6] = 1
 obstaculo[5, 0] = obstaculo[5, 1] = obstaculo[0, 7] = obstaculo[2, 7] = 1
 
-posicao_inicial = (7, 7)
 saida = (4, 7)
 
 jogo_encerrado = False  
 
-mapa = {"terreno": obstaculo, "entrada": posicao_inicial, "saida": saida}
+mapa = {"terreno": obstaculo, "saida": saida}
 
 tamanho_celula = 100
 
@@ -131,13 +130,12 @@ def busca_a_estrela(estado_ini, pacman_pos, max_niveis):
             folhas.append(node)
             if estado["caminho"][-1] == pacman_pos:
                 return node, quant_estados
-    return None, 0  # Se não encontrou resultado
+    return None, 0
 
 # Variável para controlar o tempo de movimento do fantasma
 tempo_ultimo_movimento = pygame.time.get_ticks()
 tempo_movimento = 800  # Tempo em milissegundos
 
-# Próximo destino do fantasma
 proximo_destino_x = fantasma_x
 proximo_destino_y = fantasma_y
 
@@ -241,8 +239,7 @@ while True:
     
     #indica a saída
     saida_pixel_pos = grid_para_pixel(saida[0], saida[1], tamanho_celula)
-    pygame.draw.rect(tela, (255, 0, 0), (saida_pixel_pos[0] + tamanho_celula // 2, saida_pixel_pos[1] + tamanho_celula // 2 , tamanho_celula // 2, tamanho_celula // 2)) 
-   
+    pygame.draw.rect(tela, (255, 0, 0), (saida_pixel_pos[0] + tamanho_celula // 2, saida_pixel_pos[1] + tamanho_celula // 2 , tamanho_celula // 2, tamanho_celula // 2))
     
     # Desenha o Pacman
     tela.blit(imagem_pacman, (pacman_x, pacman_y))
