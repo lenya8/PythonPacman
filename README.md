@@ -44,11 +44,5 @@ O jogo é atualizado a cada frame, com o fantasma recalculando continuamente o c
    ```
 4. Use as setas do teclado para controlar o Pacman e tente escapar do fantasma!
 
-## Melhorias Futuras
-- Adicionar mais fantasmas com comportamentos diferentes.
-- Introduzir itens colecionáveis (ex: pílulas) que o Pacman pode comer.
-- Criar um mapa mais complexo com paredes e obstáculos para o Pacman e o fantasma.
-- Implementar um sistema de pontuação e vidas.
-
 ## Licença
 Este projeto é de código aberto e está disponível sob a [Licença MIT](LICENSE). Sinta-se à vontade para usar e modificar o código conforme necessário.
