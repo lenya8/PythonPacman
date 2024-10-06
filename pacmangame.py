@@ -8,17 +8,16 @@ pygame.init()
 tamanho_tela = 800
 altura_tela = 600
 tela = pygame.display.set_mode((tamanho_tela, altura_tela))
-#pygame.display.set_caption("Movimento com Imagem e A*")
 
 pacman_x = 0
 pacman_y = 0
 
-imagem_pacman = pygame.image.load("imagens/pacman_sprite.png")
+imagem_pacman = pygame.image.load("imagens/pacman_direita.png")
 pacman_tamanho = (50, 50)
 imagem_pacman = pygame.transform.scale(imagem_pacman, pacman_tamanho)
 
 # Velocidade de movimento do Pacman
-velocidade = 5
+velicidade_pacman = 5
 
 # Variáveis para o fantasma
 fantasma_x = tamanho_tela // 2
@@ -29,6 +28,13 @@ fantasma_velocidade = 2  # Velocidade menor para o fantasma
 imagem_fantasma = pygame.image.load("imagens/fantasma.webp")
 fantasma_tamanho = (50, 50)
 imagem_fantasma = pygame.transform.scale(imagem_fantasma, fantasma_tamanho)
+
+def sprite_pacman(sprite):
+    global imagem_pacman
+    imagem_pacman = pygame.image.load(sprite)
+    pacman_tamanho = (50, 50)
+    imagem_pacman = pygame.transform.scale(imagem_pacman, pacman_tamanho)
+    return True
 
 # Dimensões do grid
 terreno_eixo_x = 8
@@ -135,8 +141,6 @@ tempo_movimento = 800  # Tempo em milissegundos
 proximo_destino_x = fantasma_x
 proximo_destino_y = fantasma_y
 
-mensagem = ""
-
 def tela_final(texto):
     tela.fill((255, 255, 255))  # Preenche a tela com branco
     fonte = pygame.font.SysFont("Arial", 60)
@@ -160,18 +164,19 @@ while True:
     novo_pacman_x, novo_pacman_y = pacman_x, pacman_y
 
     if keys[pygame.K_LEFT]:
-        if not verificar_colisao(pacman_x - velocidade, pacman_y) and pacman_x - velocidade >= 0:
-            novo_pacman_x -= velocidade
+        if not verificar_colisao(pacman_x - velicidade_pacman, pacman_y) and pacman_x - velicidade_pacman >= 0:
+            novo_pacman_x -= velicidade_pacman
+            sprite_pacman("imagens/pacman_esquerda.png")
     if keys[pygame.K_RIGHT]:
-        if not verificar_colisao(pacman_x + velocidade, pacman_y) and pacman_x + pacman_tamanho[0] + velocidade <= tamanho_tela:
-            novo_pacman_x += velocidade
+        if not verificar_colisao(pacman_x + velicidade_pacman, pacman_y) and pacman_x + pacman_tamanho[0] + velicidade_pacman <= tamanho_tela:
+            novo_pacman_x += velicidade_pacman
+            sprite_pacman("imagens/pacman_direita.png")
     if keys[pygame.K_UP]:
-        if not verificar_colisao(pacman_x, pacman_y - velocidade) and pacman_y - velocidade >= 0:
-            novo_pacman_y -= velocidade
+        if not verificar_colisao(pacman_x, pacman_y - velicidade_pacman) and pacman_y - velicidade_pacman >= 0:
+            novo_pacman_y -= velicidade_pacman
     if keys[pygame.K_DOWN]:
-        if not verificar_colisao(pacman_x, pacman_y + velocidade) and pacman_y + pacman_tamanho[1] + velocidade <= altura_tela:
-            novo_pacman_y += velocidade
-
+        if not verificar_colisao(pacman_x, pacman_y + velicidade_pacman) and pacman_y + pacman_tamanho[1] + velicidade_pacman <= altura_tela:
+            novo_pacman_y += velicidade_pacman
 
     # Atualiza a posição do Pacman
     pacman_x, pacman_y = novo_pacman_x, novo_pacman_y
@@ -180,21 +185,16 @@ while True:
     pacman_pos_grid = pixel_para_grid(pacman_x, pacman_y, tamanho_celula)
     fantasma_pos_grid = pixel_para_grid(fantasma_x, fantasma_y, tamanho_celula)
 
-    # Verifica se o Pac-Man chegou à saída
     if pacman_pos_grid == saida:
-        tela_final("Você alcançou a saída!")  # Chama a função para exibir a tela final
-        pygame.quit()  # Encerra o Pygame
-        sys.exit()  # Encerra o jogo
+        tela_final("Você alcançou a saída!")
+        pygame.quit()
+        sys.exit()
 
-  
-
-
-        # Verifica se o Pac-Man chegou à saída
     if pacman_pos_grid == fantasma_pos_grid:
-        print("Você perdeu!")  # Mensagem no console
-        tela_final("Perdeu")  # Chama a função para exibir a tela final
-        pygame.quit()  # Encerra o Pygame
-        sys.exit()  # Encerra o jogo
+        print("Você perdeu!")
+        tela_final("Perdeu")
+        pygame.quit() 
+        sys.exit() 
 
     # Estado inicial do fantasma
     estado_ini = {"mapa": mapa, "caminho": [fantasma_pos_grid]}
@@ -238,7 +238,12 @@ while True:
                 pygame.draw.rect(tela, (50, 50, 50), (j * tamanho_celula, i * tamanho_celula, tamanho_celula, tamanho_celula))  # parede
             else:
                 pygame.draw.rect(tela, (200, 255, 200), (j * tamanho_celula, i * tamanho_celula, tamanho_celula, tamanho_celula))  # fundo
-
+    
+    #indica a saída
+    saida_pixel_pos = grid_para_pixel(saida[0], saida[1], tamanho_celula)
+    pygame.draw.rect(tela, (255, 0, 0), (saida_pixel_pos[0] + tamanho_celula // 2, saida_pixel_pos[1] + tamanho_celula // 2 , tamanho_celula // 2, tamanho_celula // 2)) 
+   
+    
     # Desenha o Pacman
     tela.blit(imagem_pacman, (pacman_x, pacman_y))
 
