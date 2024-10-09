@@ -184,6 +184,7 @@ while True:
     fantasma_pos_grid = pixel_para_grid(fantasma_x, fantasma_y, tamanho_celula)
 
     if pacman_pos_grid == saida:
+        print("Você alcançou a saída!")
         tela_final("Você alcançou a saída!")
         pygame.quit()
         sys.exit()
